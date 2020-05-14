@@ -1,0 +1,53 @@
+server {
+#    listen 80;
+    listen 443 ssl http2;
+    
+    ssl_certificate         /etc/letsencrypt/live/collabora.best.aau.dk/fullchain.pem;
+    ssl_certificate_key     /etc/letsencrypt/live/collabora.best.aau.dk/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/collabora.best.aau.dk/chain.pem;
+    include /etc/nginx/snippets/ssl.conf;
+    
+    # You can set a dedicated domain like:
+    server_name collabora.best.aau.dk;
+
+    # static files
+    location ^~ /loleaflet {
+        proxy_pass https://collabora:9980;
+        proxy_set_header Host $http_host;
+    }
+
+    # WOPI discovery URL
+    location ^~ /hosting/discovery {
+        proxy_pass https://collabora:9980;
+        proxy_set_header Host $http_host;
+    }
+
+    # main websocket
+    location ~ ^/lool/(.*)/ws$ {
+        proxy_pass https://collabora:9980;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $http_host;
+        proxy_read_timeout 36000s;
+    }
+
+    # download, presentation and image upload
+    location ~ ^/lool {
+        proxy_pass https://collabora:9980;
+        proxy_set_header Host $http_host;
+    }
+
+    # Admin Console websocket
+    location ^~ /lool/adminws {
+        proxy_pass https://collabora:9980;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $http_host;
+        proxy_read_timeout 36000s;
+    }
+
+    location / {
+        proxy_pass https://collabora:9980;
+        proxy_set_header Host $http_host;
+    }
+}
