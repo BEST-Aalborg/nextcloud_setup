@@ -1,0 +1,155 @@
+version: '3.5'
+
+services:
+  db:
+    image: mariadb:latest
+    restart: always
+    networks:
+      default:
+    volumes:
+      - db:/var/lib/mysql
+
+#  redis:
+#    image: redis
+#    restart: always      
+
+  app:
+    build: app
+    restart: always
+    networks:
+      default:
+    volumes:
+      - nextcloud:/var/www/html
+      - apps:/var/www/html/custom_apps
+      - config:/var/www/html/config
+      - data:/var/www/html/data
+    links:
+      - db
+#      - redis
+      
+#  cron:
+#    image: nextcloud:fpm
+#    restart: always
+#    volumes:
+#      - nextcloud:/var/www/html
+#      - ./redis.config.php:/usr/src/nextcloud/config/redis.config.php
+#    entrypoint: /cron.sh
+#    depends_on:
+#      - db
+#      - redis
+
+  nginx:
+    image: dvaerum/nginx-with-certbot-in-docker:latest
+    restart: always
+    networks:
+      default:
+        aliases:
+          - nextcloud.best.aau.dk
+          - collabora.best.aau.dk
+          - onlyoffice.best.aau.dk
+    volumes:
+      - ./sites-available:/etc/nginx/sites-available:ro
+      - letsencrypt:/etc/letsencrypt
+      - nextcloud:/var/www/html
+      - apps:/var/www/html/custom_apps
+      - config:/var/www/html/config
+      - data:/var/www/html/data
+    environment:
+      - DOMAINS=nextcloud.best.aau.dk,collabora.best.aau.dk,onlyoffice.best.aau.dk
+      - NGINX_LOG_ACCESS=N
+      - NGINX_LOG_ERROR=Y
+      - PLUGIN_SSL_DISABLE_HEADER=Strict-Transport-Security X-Frame-Options
+    depends_on:
+      - app
+    ports:
+      - 127.0.0.1:10081:80
+      - 127.0.0.1:10441:443
+
+  collabora:
+    image: collabora/code:latest
+    restart: unless-stopped
+    networks:
+      default:
+    cap_add:
+      - MKNOD
+    environment:
+#      - DONT_GEN_SSL_CERT=1
+      - domain=nextcloud.best.aau.dk
+#      - server_name=collabora.best.aau.dk
+
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    restart: always
+    networks:
+      default:
+    stdin_open: true
+    tty: true
+    volumes:
+      - document_data:/var/www/onlyoffice/Data
+      - document_log:/var/log/onlyoffice
+      
+  elasticsearch:
+    build: ./elasticsearch
+    restart: always
+    networks:
+      default:
+
+volumes:
+  nextcloud:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/nextcloud
+
+  apps:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/apps
+
+  config:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/config
+
+  data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/data
+
+  db:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/database
+
+  document_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/doc_data
+
+  document_log:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/doc_log
+
+  letsencrypt:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/nextcloud/letsencrypt
+
+networks:
+  default:
