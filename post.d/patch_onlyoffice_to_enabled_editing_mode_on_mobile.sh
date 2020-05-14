@@ -13,15 +13,19 @@
 #
 # DocumentServer - https://github.com/ONLYOFFICE/DocumentServer.
 
-
 echo "### Applying the patch to OnlyOffice ###"
+
+if [ -z "${DOCKER_COMPOSE_FILE:-}" ]; then
+	echo "ERROR: The variable  DOCKER_COMPOSE_FILE was not defined"
+	exit 0
+fi
 
 ### Applying the patch ###
 # by replace
 # isSupportEditFeature:function(){return!1}
 # with
 # isSupportEditFeature:function(){return 1}
-cat <<'zEOFz' | docker-compose -f ~/nextcloud/docker-compose.yml exec -T onlyoffice bash 
+cat <<'zEOFz' | docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T onlyoffice bash 
 sed -i 's/isSupportEditFeature:function\(\)\{return!1\}/isSupportEditFeature:function(){return 1}/' -r /var/www/onlyoffice/documentserver/web-apps/apps/*/mobile/app.js
 zEOFz
 

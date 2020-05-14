@@ -3,6 +3,9 @@
 set -eu
 
 
+export DOCKER_COMPOSE_FILE="$(dirname "${0}")/docker-compose.yml"
+
+
 RUN=1
 FIRST=0
 FAIL_COUNT=0
@@ -15,7 +18,7 @@ trap _stop SIGINT
 
 
 post_nextcloud() {
-	dir="$(dirname "${0}")/nextcloud_post.d"
+	dir="$(dirname "${0}")/post.d"
 
 	echo "### Run Post Nextcloud scripts (${dir}) ###"
 
@@ -27,7 +30,7 @@ post_nextcloud() {
 }
 
 
-/usr/bin/docker-compose -f ${HOME}/nextcloud/docker-compose.yml up --build &
+/usr/bin/docker-compose -f "${DOCKER_COMPOSE_FILE}" up --build &
 
 
 systemd-notify --status="Waiting for Nextcloud to be ready"
