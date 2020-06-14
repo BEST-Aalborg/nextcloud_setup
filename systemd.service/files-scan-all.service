@@ -1,0 +1,14 @@
+[Unit]
+Description=Scan all files
+After=nextcloud.service
+Before=preview-generate-all.service
+PartOf=nextcloud.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker-compose -f %h/nextcloud/docker-compose.yml exec -T --user www-data app php occ files:scan --all --verbose
+#Restart=on-failure
+RemainAfterExit=yes
+
+[Install]
+WantedBy=nextcloud.service
