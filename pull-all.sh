@@ -3,6 +3,7 @@
 
 set -eu
 
+TEST=${TEST:-}
 
 docker_tag() {
     image="$1"
@@ -29,16 +30,28 @@ for file in $(find . -name Dockerfile); do
         _version=${tag%-$_branch}
         [ "${_version}" == production ] && _version=17
 
-        while [ -n "$(docker_tag "${image}" "^${_version}[0-9.]*5-${_branch}$")" ]; do
-            _version=$(expr ${_version} + 1)
-        done
+        # Check if we are far enough into the next major release to that we want to upgrade
+        _check_new_version=$(expr ${_version} + 1)
+        [ -n "$(docker_tag "${image}" "^${_check_new_version}[0-9.]*5-${_branch}$")" ] && _version="${_check_new_version}"
 
         image_and_tag="${image}:${_version}-${_branch}"
-        sed -iE "s/^FROM[[:space:]].*/FROM ${image_and_tag}/" "${file}"
+
+        # Only pull new image if the envirement variable `TEST` is not set else `echo` the image
+        if [ -z "${TEST}" ]; then
+            sed -iE "s/^FROM[[:space:]].*/FROM ${image_and_tag}/" "${file}"
+        else
+            echo "TEST: Set the new Nextcloud image to be '${image_and_tag}' in the file: ${file}"
+        fi
     fi
 
-    docker pull ${image_and_tag}
+    # Only pull new image if the envirement variable `TEST` is not set else `echo` the image
+    if [ -z "${TEST}" ]; then
+        docker pull "${image_and_tag}"
+    else
+        echo "TEST: Pull the image '${image_and_tag}'"
+    fi
 done
 
-docker-compose -f ~/nextcloud/docker-compose.yml pull
+# Only run if the envirement variable `TEST` is not set
+[ -z "${TEST}" ] && docker-compose -f ~/nextcloud/docker-compose.yml pull
 
