@@ -38,7 +38,7 @@ for file in $(find . -name Dockerfile); do
 
         # Only pull new image if the envirement variable `TEST` is not set else `echo` the image
         if [ -z "${TEST}" ]; then
-            sed -iE "s/^FROM[[:space:]].*/FROM ${image_and_tag}/" "${file}"
+            sed -Ei "s/^FROM[[:space:]].*/FROM ${image_and_tag}/" "${file}"
         else
             echo "TEST: Set the new Nextcloud image to be '${image_and_tag}' in the file: ${file}"
         fi
