@@ -9,5 +9,6 @@ if [ -z "${DOCKER_COMPOSE_FILE:-}" ]; then
 fi
 
 docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T --user www-data app php occ db:add-missing-indices
+docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T --user www-data app php occ db:add-missing-columns
 
 

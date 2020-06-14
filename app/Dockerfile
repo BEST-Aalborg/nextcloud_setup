@@ -1,4 +1,4 @@
-FROM nextcloud:18-fpm
+FROM nextcloud:19-fpm
 
 RUN sed -i s/opcache.memory_consumption.*[0-9]*/opcache.memory_consumption=384/ /usr/local/etc/php/conf.d/opcache-recommended.ini
 

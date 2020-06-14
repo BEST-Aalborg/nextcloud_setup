@@ -65,7 +65,7 @@ while [ ${RUN} -eq 1 ]; do
 		fi
 	fi
 
-	sleep 1
+	sleep 10
 done
 
 
