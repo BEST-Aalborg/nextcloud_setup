@@ -4,9 +4,12 @@ After=nextcloud.service files-scan-all.service
 PartOf=nextcloud.service
 
 [Service]
-Type=oneshot
-ExecStart=/usr/bin/docker-compose -f %h/nextcloud/docker-compose.yml exec -T --user www-data app php occ preview:generate-all
-#Restart=on-failure
+Type=simple
+ExecStart=/usr/bin/docker-compose exec -T --user www-data app php occ preview:generate-all
+
+Restart=on-failure
+RestartSec=5min
+
 RemainAfterExit=yes
 
 [Install]

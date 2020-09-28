@@ -3,12 +3,17 @@
 
 set -eu
 
+if [ ! -d .git ]; then
+  echo The working directory have to the root directory of the git project
+  exit 1
+fi
+
 mkdir -p ~/.config/systemd/user
 
 for file in ~/.config/systemd/user/*.service; do
   if [ -L "${file}" ]; then
     if [ ! -e "${file}" ]; then
-      rm "${_file}"
+      rm "${file}"
     fi
   fi
 done

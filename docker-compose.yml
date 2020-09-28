@@ -1,43 +1,35 @@
+# ex: set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab:
+---
 version: '3.5'
 
 services:
   db:
     image: mariadb:latest
     restart: always
-    networks:
-      default:
     volumes:
       - db:/var/lib/mysql
+    env_file:
+      - .env
 
-#  redis:
-#    image: redis
-#    restart: always      
+  redis:
+    image: redis
+    restart: always
+    command: redis-server --requirepass "${REDIS_HOST_PASSWORD}"
 
   app:
     build: app
     restart: always
-    networks:
-      default:
     volumes:
       - nextcloud:/var/www/html
       - apps:/var/www/html/custom_apps
       - config:/var/www/html/config
       - data:/var/www/html/data
-    links:
+    env_file:
+      - .env
+    depends_on:
       - db
-#      - redis
+      - redis
       
-#  cron:
-#    image: nextcloud:fpm
-#    restart: always
-#    volumes:
-#      - nextcloud:/var/www/html
-#      - ./redis.config.php:/usr/src/nextcloud/config/redis.config.php
-#    entrypoint: /cron.sh
-#    depends_on:
-#      - db
-#      - redis
-
   nginx:
     image: dvaerum/nginx-with-certbot-in-docker:latest
     restart: always
@@ -58,7 +50,8 @@ services:
       - DOMAINS=nextcloud.best.aau.dk,collabora.best.aau.dk,onlyoffice.best.aau.dk
       - NGINX_LOG_ACCESS=N
       - NGINX_LOG_ERROR=Y
-      - PLUGIN_SSL_DISABLE_HEADER=Strict-Transport-Security X-Frame-Options
+      - PLUGIN_SSL_DISABLE_HEADER=Strict-Transport-Security X-Frame-Options Content-Security-Policy
+#      - DEBUG_BASH=1
     depends_on:
       - app
     ports:
@@ -68,8 +61,6 @@ services:
   collabora:
     image: collabora/code:latest
     restart: unless-stopped
-    networks:
-      default:
     cap_add:
       - MKNOD
     environment:
@@ -78,10 +69,10 @@ services:
 #      - server_name=collabora.best.aau.dk
 
   onlyoffice:
-    image: onlyoffice/documentserver:latest
+#    image: onlyoffice/documentserver:latest
+    ### READ The onlyoffice/Dockerfile for more info!
+    build: onlyoffice
     restart: always
-    networks:
-      default:
     stdin_open: true
     tty: true
     volumes:
@@ -91,8 +82,6 @@ services:
   elasticsearch:
     build: ./elasticsearch
     restart: always
-    networks:
-      default:
 
 volumes:
   nextcloud:
@@ -151,5 +140,4 @@ volumes:
       type: none
       device: /data/nextcloud/letsencrypt
 
-networks:
-  default:
+

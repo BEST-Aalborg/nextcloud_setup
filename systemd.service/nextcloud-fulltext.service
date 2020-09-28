@@ -4,8 +4,9 @@ After=nextcloud.service
 PartOf=nextcloud.service
 
 [Service]
-ExecStart=/usr/bin/docker-compose -f %h/nextcloud/docker-compose.yml exec -T --user www-data app php occ fulltextsearch:live --quiet
-ExecStop=/usr/bin/docker-compose -f %h/nextcloud/docker-compose.yml exec -T --user www-data app php occ fulltextsearch:stop
+ExecStart=/usr/bin/docker-compose exec -T --user www-data app php occ fulltextsearch:live --quiet
+ExecStop=/usr/bin/docker-compose exec -T --user www-data app php occ fulltextsearch:stop
+
 Nice=19
 Restart=always
 RestartSec=1min

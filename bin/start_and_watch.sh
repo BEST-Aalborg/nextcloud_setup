@@ -2,10 +2,18 @@
 
 set -eu
 
+if [ ! -d .git ]; then
+  echo The working directory have to the root directory of the git project
+  exit 1
+fi
 
-export DOCKER_COMPOSE_FILE="$(dirname "${0}")/docker-compose.yml"
+export DOCKER_COMPOSE_FILE="docker-compose.yml"
+
+### Config Variables
+CURL_MAX_TIME=30
 
 
+### Global Variables
 RUN=1
 FIRST=0
 FAIL_COUNT=0
@@ -30,12 +38,12 @@ post_nextcloud() {
 }
 
 
-/usr/bin/docker-compose -f "${DOCKER_COMPOSE_FILE}" up --build &
+/usr/bin/docker-compose -f "${DOCKER_COMPOSE_FILE}" up -d --build
 
 
 systemd-notify --status="Waiting for Nextcloud to be ready"
 while [ ${RUN} -eq 1 ]; do
-	res=$(curl --max-time 5 -s -w "\n%{http_code}\n" 'https://nextcloud.best.aau.dk/status.php' || true)
+	res=$(curl --max-time ${CURL_MAX_TIME} -s -w "\n%{http_code}\n" 'https://nextcloud.best.aau.dk/status.php' || true)
 	line_count=$(wc -l <<< ${res})
 	body=$(head -n $(expr ${line_count} - 1) <<< ${res})
 	http_code=$(tail -n 1 <<< ${res})

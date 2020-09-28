@@ -1,14 +1,16 @@
 [Unit]
-Description=Service for NextCloud
+Description=Service for Nextcloud
 After=docker.service
 
 [Service]
-#Type=fork
+WorkingDirectory=%h/nextcloud
+
 Type=notify
-ExecStartPre=/bin/bash %h/nextcloud/pull-all.sh
-#ExecStart=/usr/bin/docker-compose -f %h/nextcloud/docker-compose.yml up --build
-ExecStart=%h/nextcloud/start_and_watch.sh
-ExecStop=/usr/bin/docker-compose -f %h/nextcloud/docker-compose.yml stop
+ExecStartPre=/bin/bash bin/pull-all.sh
+ExecStart=/bin/bash bin/start_and_watch.sh
+
+ExecStop=/usr/bin/docker-compose stop
+
 Restart=always
 RestartSec=5sec
 NotifyAccess=all

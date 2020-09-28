@@ -3,6 +3,11 @@
 
 set -eu
 
+if [ ! -d .git ]; then
+  echo The working directory have to the root directory of the git project
+  exit 1
+fi
+
 TEST=${TEST:-}
 
 docker_tag() {
