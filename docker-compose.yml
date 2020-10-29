@@ -54,9 +54,41 @@ services:
 #      - DEBUG_BASH=1
     depends_on:
       - app
-    ports:
-      - 127.0.0.1:10081:80
-      - 127.0.0.1:10441:443
+
+    ### NOTES for labels: ###
+    # These labels are used to configure the container Traefik (https://doc.traefik.io/traefik/).
+    # Traefik is used as our LB (Load Balander) for handling incoming connection and forward them
+    # to the correct containers.
+    labels:
+      # Enable this container to be load balancered by Traefik
+      - "traefik.enable=true"
+
+      # Select the endpoint from Traefik there which is used from incoming connection. Normally the endpoint `web`
+      # is going to be on port 80 (HTTP).
+      - "traefik.http.routers.nextcloud_http.entrypoints=web"
+      # List of all the domains there will forwarded to this container
+      - "traefik.http.routers.nextcloud_http.rule=Host(`nextcloud.best.aau.dk`, `collabora.best.aau.dk`, `onlyoffice.best.aau.dk`)"
+      # In order to select which port on this container the connections from Traefik should be farwarded to,
+      # there needs to be defined a service.
+      - "traefik.http.routers.nextcloud_http.service=nextcloud_http"
+      # This service defineds that we load balancer should farward connections to port 80
+      - "traefik.http.services.nextcloud_http.loadbalancer.server.port=80"
+
+      # Select the endpoint from Traefik there which is used from incoming connection. Normally the endpoint `websecure`
+      # is going to be on port 443 (HTTPS).
+      - "traefik.tcp.routers.nextcloud_https.entrypoints=websecure"
+      # List of all the domains there will forwarded to this container
+      - "traefik.tcp.routers.nextcloud_https.rule=HostSNI(`nextcloud.best.aau.dk`, `collabora.best.aau.dk`, `onlyoffice.best.aau.dk`)"
+      # By default traefik will handle the encryption of connections and just forward the connection unencrypted,
+      # but if you instead just want Traefik to forward the encrypted connection to the container,
+      # set `tls.passthrough` to `true`.
+      - "traefik.tcp.routers.nextcloud_https.tls.passthrough=true"
+      # To order to select which port on this container the connections from Traefik should be farwarded to,
+      # there needs to be defined a service.
+      - "traefik.tcp.routers.nextcloud_https.service=nextcloud_https"
+      # This service defineds that we load balancer should farward connections to port 80
+      - "traefik.tcp.services.nextcloud_https.loadbalancer.server.port=443"
+
 
   collabora:
     image: collabora/code:latest
@@ -64,9 +96,7 @@ services:
     cap_add:
       - MKNOD
     environment:
-#      - DONT_GEN_SSL_CERT=1
       - domain=nextcloud.best.aau.dk
-#      - server_name=collabora.best.aau.dk
 
   onlyoffice:
 #    image: onlyoffice/documentserver:latest
@@ -139,5 +169,4 @@ volumes:
       o: bind
       type: none
       device: /data/nextcloud/letsencrypt
-
 
