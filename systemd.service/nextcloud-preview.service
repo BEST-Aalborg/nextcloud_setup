@@ -1,5 +1,5 @@
 [Unit]
-Description=Preview Generator
+Description=Nextcloud - Preview Generator
 After=nextcloud.service files-scan-all.service
 After=preview-generate-all.service
 PartOf=nextcloud.service

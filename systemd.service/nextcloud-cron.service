@@ -1,5 +1,5 @@
 [Unit]
-Description=Nextcloud Cron Job
+Description=Nextcloud - Cron Job
 After=nextcloud.service files-scan-all.service
 PartOf=nextcloud.service
 

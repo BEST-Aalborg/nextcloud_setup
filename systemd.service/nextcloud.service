@@ -1,5 +1,5 @@
 [Unit]
-Description=Service for Nextcloud
+Description=Nextcloud - Main Service
 After=docker.service
 
 [Service]
