@@ -6,5 +6,5 @@
 #
 # NOTE: The command uses some shell magic there uses the value of the internal
 # variable MYSQL_ROOT_PASSWORD as the password
-docker-compose exec --user mysql db sh -c 'mysql_upgrade -u root "-p${MYSQL_ROOT_PASSWORD}"'
+docker-compose exec --user mysql db sh -c 'mysql_upgrade -u root "-p${MYSQL_ROOT_PASSWORD}" || true'
 
